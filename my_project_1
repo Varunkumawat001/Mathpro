@@ -1,0 +1,30 @@
+import tensorflow as tf
+import numpy as np
+from music21 import stream, note, chord
+
+# Load the trained model
+model = tf.keras.models.load_model('music_model.h5')
+
+# Function to generate music based on trained model
+def generate_music(model, start_notes, num_notes=500):
+    output_notes = []
+    current_notes = start_notes  # Start from the provided sequence of notes
+    
+    for _ in range(num_notes):
+        prediction_input = prepare_input_for_model(current_notes)  # Prepare input for model
+        predicted_note = model.predict(prediction_input)  # Model prediction
+        
+        note = convert_prediction_to_note(predicted_note)  # Convert prediction to a note/chord
+        output_notes.append(note)
+        
+        # Update current_notes with the predicted note for the next iteration
+        current_notes.append(note)
+        current_notes = current_notes[1:]
+    
+    # Convert output notes to a music21 stream and save as MIDI
+    midi_stream = stream.Stream(output_notes)
+    midi_stream.write('midi', fp='generated_music.mid')
+
+# Example usage:
+start_notes = ['C4', 'E4', 'G4']  # Starting notes for generation
+generate_music(model, start_notes)
